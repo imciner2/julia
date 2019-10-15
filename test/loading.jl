@@ -628,8 +628,13 @@ end
         "$s$tmp" => [DEFAULT; tmp],
         )
     for (env, result) in pairs(cases)
+        @show env
+        @show result
         withenv("JULIA_DEPOT_PATH" => env) do
             script = "DEPOT_PATH == $(repr(result)) || error()"
+            @show ENV["JULIA_DEPOT_PATH"]
+            @show script
+            @show read(`$(Base.julia_cmd()) --startup-file=no -e $script`, String)
             @test success(`$(Base.julia_cmd()) --startup-file=no -e $script`)
         end
     end
