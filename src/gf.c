@@ -201,6 +201,10 @@ jl_code_info_t *jl_type_infer(jl_method_instance_t *mi, size_t world, int force)
     }
 #endif
     jl_ptls_t ptls = jl_get_ptls_states();
+    int last_errno = errno;
+#ifdef _OS_WINDOWS_
+    DWORD last_error = GetLastError();
+#endif
     size_t last_age = ptls->world_age;
     ptls->world_age = jl_typeinf_world;
     mi->inInference = 1;
@@ -218,6 +222,10 @@ jl_code_info_t *jl_type_infer(jl_method_instance_t *mi, size_t world, int force)
     ptls->world_age = last_age;
     in_inference--;
     mi->inInference = 0;
+#ifdef _OS_WINDOWS_
+    SetLastError(last_error);
+#endif
+    errno = last_errno;
 
     if (src && !jl_is_code_info(src)) {
         src = NULL;
@@ -2442,7 +2450,7 @@ jl_function_t *jl_new_generic_function_with_supertype(jl_sym_t *name, jl_module_
     // type name is function name prefixed with #
     size_t l = strlen(jl_symbol_name(name));
     char *prefixed;
-    prefixed = (char*)malloc(l+2);
+    prefixed = (char*)malloc_s(l+2);
     prefixed[0] = '#';
     strcpy(&prefixed[1], jl_symbol_name(name));
     jl_sym_t *tname = jl_symbol(prefixed);
@@ -2480,7 +2488,7 @@ JL_DLLEXPORT jl_function_t *jl_get_kwsorter(jl_value_t *ty)
                     name++;
             }
             size_t l = strlen(name);
-            char *suffixed = (char*)malloc(l+5);
+            char *suffixed = (char*)malloc_s(l+5);
             strcpy(&suffixed[0], name);
             strcpy(&suffixed[l], "##kw");
             jl_sym_t *fname = jl_symbol(suffixed);
