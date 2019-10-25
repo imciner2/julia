@@ -1087,6 +1087,10 @@ ifeq (supported, $(shell echo $(IFUNC_DETECT_SRC) | $(CC) -Werror -x c - -S -o /
 JCPPFLAGS += -DJULIA_HAS_IFUNC_SUPPORT=1
 endif
 JLDFLAGS := -Wl,-Bdynamic
+# Raspbian has issues linking against atomic, so it must be specified
+ifneq (,$(findstring arm,$(ARCH)))
+JLDFLAGS += -Wl,-latomic
+endif
 ifneq ($(SANITIZE),1)
 ifneq ($(SANITIZE_MEMORY),1)
 ifneq ($(LLVM_SANITIZE),1)
